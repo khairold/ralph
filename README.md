@@ -1,41 +1,16 @@
 # Ralph
 
-![Ralph](ralph.webp)
-
 Ralph is an autonomous AI agent loop that runs [Claude Code](https://claude.ai/code) repeatedly until all PRD items are complete. Each iteration is a fresh Claude Code instance with clean context. Memory persists via git history, `progress.txt`, and `prd.json`.
 
 Based on [Geoffrey Huntley's Ralph pattern](https://ghuntley.com/ralph/).
 
-[Read my in-depth article on how I use Ralph](https://x.com/ryancarson/status/2008548371712135632)
+[Read Ryan Carson's in-depth article on how I use Ralph](https://x.com/ryancarson/status/2008548371712135632)
 
 ## Prerequisites
 
 - [Claude Code CLI](https://docs.anthropic.com/en/docs/claude-code) installed and authenticated
 - `jq` installed (`brew install jq` on macOS)
 - A git repository for your project
-
-## Setup
-
-### Option 1: Copy to your project
-
-Copy the ralph files into your project:
-
-```bash
-# From your project root
-mkdir -p scripts/ralph
-cp /path/to/ralph/ralph.sh scripts/ralph/
-cp /path/to/ralph/prompt.md scripts/ralph/
-chmod +x scripts/ralph/ralph.sh
-```
-
-### Option 2: Install commands globally
-
-Copy the custom commands to your Claude Code config for use across all projects:
-
-```bash
-mkdir -p ~/.claude/commands
-cp -r .claude/commands/* ~/.claude/commands/
-```
 
 ## Workflow
 
@@ -62,12 +37,13 @@ This creates `prd.json` with user stories structured for autonomous execution.
 ### 3. Run Ralph
 
 ```bash
-./scripts/ralph/ralph.sh [max_iterations]
+./ralph.sh [max_iterations]
 ```
 
 Default is 10 iterations.
 
 Ralph will:
+
 1. Create a feature branch (from PRD `branchName`)
 2. Pick the highest priority story where `passes: false`
 3. Implement that single story
@@ -79,35 +55,26 @@ Ralph will:
 
 ## Key Files
 
-| File | Purpose |
-|------|---------|
-| `ralph.sh` | The bash loop that spawns fresh Claude Code instances |
-| `prompt.md` | Instructions given to each Claude Code instance |
-| `prd.json` | User stories with `passes` status (the task list) |
-| `prd.json.example` | Example PRD format for reference |
-| `progress.txt` | Append-only learnings for future iterations |
-| `.claude/commands/prd.md` | Command for generating PRDs |
-| `.claude/commands/ralph.md` | Command for converting PRDs to JSON |
+| File                        | Purpose                                               |
+| --------------------------- | ----------------------------------------------------- |
+| `ralph.sh`                  | The bash loop that spawns fresh Claude Code instances |
+| `prompt.md`                 | Instructions given to each Claude Code instance       |
+| `prd.json`                  | User stories with `passes` status (the task list)     |
+| `prd.json.example`          | Example PRD format for reference                      |
+| `progress.txt`              | Append-only learnings for future iterations           |
+| `.claude/commands/prd.md`   | Command for generating PRDs                           |
+| `.claude/commands/ralph.md` | Command for converting PRDs to JSON                   |
 
 ## Flowchart
 
-[![Ralph Flowchart](ralph-flowchart.png)](https://snarktank.github.io/ralph/)
-
-**[View Interactive Flowchart](https://snarktank.github.io/ralph/)** - Click through to see each step with animations.
-
-```
-SETUP:  You write PRD → Convert to prd.json → Run ralph.sh
-LOOP:   Claude picks story → Implements → Commits → Updates prd.json → Logs progress
-        ↑                                                                         ↓
-        ←←←←←←←←←←←←←←←←←←← More stories? (Yes) ←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←
-DONE:   All stories complete (No more stories)
-```
+[![Workflow]](./RALPH_WORKFLOW.md)
 
 ## Critical Concepts
 
 ### Each Iteration = Fresh Context
 
 Each iteration spawns a **new Claude Code instance** with clean context. The only memory between iterations is:
+
 - Git history (commits from previous iterations)
 - `progress.txt` (learnings and context)
 - `prd.json` (which stories are done)
@@ -121,12 +88,14 @@ Claude Code is invoked with the `--chrome` flag, enabling browser automation for
 Each PRD item should be small enough to complete in one context window. If a task is too big, the LLM runs out of context before finishing and produces poor code.
 
 Right-sized stories:
+
 - Add a database column and migration
 - Add a UI component to an existing page
 - Update a server action with new logic
 - Add a filter dropdown to a list
 
 Too big (split these):
+
 - "Build the entire dashboard"
 - "Add authentication"
 - "Refactor the API"
@@ -136,6 +105,7 @@ Too big (split these):
 After each iteration, Ralph updates the relevant `AGENTS.md` files with learnings. This is key because Claude Code automatically reads these files, so future iterations (and future human developers) benefit from discovered patterns, gotchas, and conventions.
 
 Examples of what to add to AGENTS.md:
+
 - Patterns discovered ("this codebase uses X for Y")
 - Gotchas ("do not forget to update Z when changing W")
 - Useful context ("the settings panel is in component X")
@@ -143,6 +113,7 @@ Examples of what to add to AGENTS.md:
 ### Feedback Loops
 
 Ralph only works if there are feedback loops:
+
 - Typecheck catches type errors
 - Tests verify behavior
 - CI must stay green (broken code compounds across iterations)
@@ -173,6 +144,7 @@ git log --oneline -10
 ## Customizing prompt.md
 
 Edit `prompt.md` to customize Ralph's behavior for your project:
+
 - Add project-specific quality check commands
 - Include codebase conventions
 - Add common gotchas for your stack
@@ -185,4 +157,3 @@ Ralph automatically archives previous runs when you start a new feature (differe
 
 - [Geoffrey Huntley's Ralph article](https://ghuntley.com/ralph/)
 - [Claude Code documentation](https://docs.anthropic.com/en/docs/claude-code)
-# ralph
